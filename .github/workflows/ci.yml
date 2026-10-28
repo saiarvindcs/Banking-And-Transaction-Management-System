@@ -1,26 +1,76 @@
+
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+
 jobs:
   checks:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:16
-        env: {POSTGRES_DB: banking, POSTGRES_USER: banking, POSTGRES_PASSWORD: banking}
-        ports: ['5432:5432']
-        options: --health-cmd "pg_isready -U banking" --health-interval 5s --health-timeout 5s --health-retries 10
+        env:
+          POSTGRES_DB: banking
+          POSTGRES_USER: banking
+          POSTGRES_PASSWORD: banking
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U banking"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      POSTGRES_DB: banking
+      POSTGRES_USER: banking
+      POSTGRES_PASSWORD: banking
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/0
+      CELERY_RESULT_BACKEND: redis://localhost:6379/1
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: {python-version: '3.12'}
-      - run: pip install -r requirements.txt
-      - run: python manage.py makemigrations --noinput && python manage.py migrate --noinput
-      - run: pytest -q
-      - run: bandit -r apps -ll
-      - run: pip-audit -r requirements.txt
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check Django configuration
+        run: python manage.py check
+
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Apply database migrations
+        run: python manage.py migrate --noinput
+
+      - name: Run automated tests
+        run: pytest -q
+
+      - name: Run Bandit security checks
+        run: bandit -r apps -ll
+
+      - name: Audit Python dependencies
+        run: pip-audit -r requirements.txt
         continue-on-error: true
-        # Audit failures must be triaged; this step is currently informational.
-        env: {POSTGRES_PASSWORD: banking}
-      - uses: actions/setup-node@v4
-        with: {node-version: '20'}
-      - run: cd frontend && npm install && npm run build
