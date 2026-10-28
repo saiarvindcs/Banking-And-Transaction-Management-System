@@ -1,0 +1,33 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.pyc
+.ruff_cache/
+
+node_modules/
+frontend/dist/
+staticfiles/
+.coverage
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+*.log
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local files
+*.zip

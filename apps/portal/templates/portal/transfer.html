@@ -1,0 +1,1 @@
+{% extends 'portal/base.html' %}{% block title %}Transfer funds{% endblock %}{% block content %}<section class="card"><h1>Transfer funds</h1><p>Internal simulated transfer between active accounts. No real funds are moved.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="button" type="submit">Submit transfer</button></form></section>{% endblock %}

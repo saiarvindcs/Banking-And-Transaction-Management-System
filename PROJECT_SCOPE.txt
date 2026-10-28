@@ -1,0 +1,2 @@
+Banking & Transaction Management API — Django Templates Edition
+Built from user-provided source ZIP. Contains implemented modules and an honest implementation matrix in docs/IMPLEMENTATION_MATRIX.md.

@@ -1,0 +1,74 @@
+
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Banking Console{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'portal/style.css' %}">
+</head>
+<body>
+
+<header>
+    <a class="brand" href="/">
+        NORTHSTAR <span>BANKING</span>
+    </a>
+
+    <nav>
+        {% if user.is_authenticated %}
+            <span>{{ user.username }}</span>
+
+            <details class="notifications-menu">
+                <summary aria-label="Notifications">
+                    🔔 Notifications
+                    {% if notification_count %}
+                        <span class="notification-count">
+                            {{ notification_count }}
+                        </span>
+                    {% endif %}
+                </summary>
+
+                <div class="notifications-dropdown">
+                    <h3>Recent notifications</h3>
+
+                    {% for notification in notifications %}
+                        <div class="notification-item">
+                            <strong>
+                                {{ notification.title }}
+                            </strong>
+                            <p>{{ notification.message }}</p>
+                            <small>{{ notification.created_at }}</small>
+                        </div>
+                    {% empty %}
+                        <p>No notifications yet.</p>
+                    {% endfor %}
+                </div>
+            </details>
+
+            <form method="post" action="{% url 'portal-logout' %}">
+                {% csrf_token %}
+                <button>Sign out</button>
+            </form>
+        {% else %}
+            <a href="{% url 'portal-login' %}">Sign in</a>
+            <a href="{% url 'portal-register' %}">Register</a>
+        {% endif %}
+
+        <a href="/">Dashboard</a>
+        <a href="/transfers/new/">Transfer</a>
+        <a href="/operations/">Operations</a>
+        <a href="/products/">Products &amp; payments</a>
+    </nav>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    Banking simulation · No real money or external banking integrations
+</footer>
+
+</body>
+</html>

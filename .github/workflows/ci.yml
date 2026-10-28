@@ -1,0 +1,26 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_DB: banking, POSTGRES_USER: banking, POSTGRES_PASSWORD: banking}
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U banking" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install -r requirements.txt
+      - run: python manage.py makemigrations --noinput && python manage.py migrate --noinput
+      - run: pytest -q
+      - run: bandit -r apps -ll
+      - run: pip-audit -r requirements.txt
+        continue-on-error: true
+        # Audit failures must be triaged; this step is currently informational.
+        env: {POSTGRES_PASSWORD: banking}
+      - uses: actions/setup-node@v4
+        with: {node-version: '20'}
+      - run: cd frontend && npm install && npm run build
